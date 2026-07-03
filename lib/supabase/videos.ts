@@ -1,5 +1,4 @@
 import { supabase } from "./client"
-import { supabaseAdmin } from "./server"
 
 export async function getVideosByModelId(modelId: string) {
   return supabase
@@ -15,7 +14,7 @@ export async function createVideo(data: {
   embedUrl: string
   thumbnailUrl?: string
 }) {
-  return supabaseAdmin
+  return supabase
     .from("videos")
     .insert(data)
     .select()
@@ -23,7 +22,7 @@ export async function createVideo(data: {
 }
 
 export async function deleteVideo(id: string) {
-  return supabaseAdmin
+  return supabase
     .from("videos")
     .delete()
     .eq("id", id)
