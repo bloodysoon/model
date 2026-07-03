@@ -43,7 +43,7 @@ export default async function ModelDetailPage({
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <Button asChild variant="ghost" className="mb-6">
-          <Link href="/models">
+          <Link href="/">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Models
           </Link>
@@ -51,32 +51,8 @@ export default async function ModelDetailPage({
 
         <div className="mb-8">
           <div className="flex flex-col md:flex-row gap-6">
-            <div className="relative h-64 w-full md:w-64 md:h-64 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-              <Image
-                src={model.avatarUrl}
-                alt={model.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 256px"
-              />
-            </div>
-
             <div className="flex-1">
               <h1 className="text-4xl font-bold mb-2">{model.name}</h1>
-
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-1">
-                  <Video className="h-4 w-4" />
-                  <span>{videos.length} videos</span>
-                </div>
-
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    Added {format(new Date(model.created_at), "MMM d, yyyy")}
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
