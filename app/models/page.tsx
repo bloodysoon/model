@@ -1,12 +1,15 @@
-import { getModels } from "@/lib/supabase/models"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Video } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+import { getModels } from "@/lib/supabase/models";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Video } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 export default async function ModelsPage() {
-  const models = await getModels()
+  const models = await getModels();
 
   return (
     <div className="min-h-screen bg-background">
@@ -28,7 +31,9 @@ export default async function ModelsPage() {
             <CardContent className="py-12 text-center">
               <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No models yet</h3>
-              <p className="text-muted-foreground mb-4">Get started by creating your first model</p>
+              <p className="text-muted-foreground mb-4">
+                Get started by creating your first model
+              </p>
               <Button asChild>
                 <Link href="/admin/models/new">Create Model</Link>
               </Button>
@@ -37,7 +42,10 @@ export default async function ModelsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {models.map((model: any) => (
-              <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card
+                key={model.id}
+                className="overflow-hidden hover:shadow-lg transition-shadow"
+              >
                 <div className="relative h-48 w-full bg-muted">
                   <Image
                     src={model.avatarUrl}
@@ -69,5 +77,5 @@ export default async function ModelsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

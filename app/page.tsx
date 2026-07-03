@@ -1,6 +1,9 @@
-import { getRecentModels, getStats } from "@/lib/supabase/models"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+import { getRecentModels, getStats } from "@/lib/supabase/models";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
   Video,
@@ -8,13 +11,13 @@ import {
   LayoutDashboard,
   Plus,
   Sparkles,
-} from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
+} from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 export default async function HomePage() {
-  const stats = await getStats()
-  const recentModels = await getRecentModels(6)
+  const stats = await getStats();
+  const recentModels = await getRecentModels(6);
 
   return (
     <main className="min-h-screen bg-background">
@@ -132,7 +135,7 @@ export default async function HomePage() {
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
               {recentModels.map((model: any) => {
-                const videos = model.Video ?? []
+                const videos = model.Video ?? [];
 
                 return (
                   <Card
@@ -167,7 +170,12 @@ export default async function HomePage() {
                               </div>
                             </div>
 
-                            <Button asChild size="sm" variant="outline" className="shrink-0">
+                            <Button
+                              asChild
+                              size="sm"
+                              variant="outline"
+                              className="shrink-0"
+                            >
                               <Link href={`/models/${model.id}`}>Open</Link>
                             </Button>
                           </div>
@@ -203,14 +211,14 @@ export default async function HomePage() {
                       </div>
                     </CardContent>
                   </Card>
-                )
+                );
               })}
             </div>
           )}
         </section>
       </div>
     </main>
-  )
+  );
 }
 
 function StatTile({
@@ -218,9 +226,9 @@ function StatTile({
   value,
   icon,
 }: {
-  label: string
-  value: number
-  icon: React.ReactNode
+  label: string;
+  value: number;
+  icon: React.ReactNode;
 }) {
   return (
     <Card className="overflow-hidden">
@@ -237,5 +245,5 @@ function StatTile({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

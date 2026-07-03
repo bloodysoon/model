@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 import { createVideo, getModelById, updateModel } from "@/lib/supabase/models"
 import { ModelForm } from "@/components/models/model-form"
 import { Button } from "@/components/ui/button"

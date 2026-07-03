@@ -1,29 +1,32 @@
-import { createModel, createVideo } from "@/lib/supabase/models"
-import { ModelForm } from "@/components/models/model-form"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { redirect } from "next/navigation"
-import { type ModelFormData } from "@/lib/validations/model"
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+import { createModel, createVideo } from "@/lib/supabase/models";
+import { ModelForm } from "@/components/models/model-form";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { type ModelFormData } from "@/lib/validations/model";
 
 export default function NewModelPage() {
-async function handleSubmit(data: ModelFormData) {
-  "use server"
+  async function handleSubmit(data: ModelFormData) {
+    "use server";
 
-  const model = await createModel({
-    name: data.name,
-    avatarUrl: data.avatarUrl,
-  })
+    const model = await createModel({
+      name: data.name,
+      avatarUrl: data.avatarUrl,
+    });
 
-  if (data.videoEmbedUrl) {
-    await createVideo({
-      modelId: model.id,
-      url: data.videoEmbedUrl,
-    })
+    if (data.videoEmbedUrl) {
+      await createVideo({
+        modelId: model.id,
+        url: data.videoEmbedUrl,
+      });
+    }
+
+    redirect("/admin/models");
   }
-
-  redirect("/admin/models")
-}
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,5 +41,5 @@ async function handleSubmit(data: ModelFormData) {
         <ModelForm onSubmit={handleSubmit} submitLabel="Create Model" />
       </div>
     </div>
-  )
+  );
 }
