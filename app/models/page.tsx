@@ -1,28 +1,9 @@
-import { prisma } from "@/lib/prisma"
+import { getModels } from "@/lib/supabase/models"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Video } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-
-async function getModels() {
-  try {
-    const models = await prisma.model.findMany({
-      include: {
-        _count: {
-          select: { videos: true }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
-    return models
-  } catch (error) {
-    console.error('Failed to fetch models:', error)
-    return []
-  }
-}
 
 export default async function ModelsPage() {
   const models = await getModels()
@@ -30,9 +11,16 @@ export default async function ModelsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Models</h1>
-          <p className="text-muted-foreground">Browse our collection of models and their videos</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <Button asChild variant="ghost" className="mb-4">
+              <Link href="/">
+                <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
+                Back to Home
+              </Link>
+            </Button>
+            <p className="text-muted-foreground">View all available models</p>
+          </div>
         </div>
 
         {models.length === 0 ? (
@@ -63,13 +51,10 @@ export default async function ModelsPage() {
                   <CardTitle className="text-xl">{model.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {model.description}
-                  </p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Video className="h-4 w-4" />
-                      <span>{model._count.videos} videos</span>
+                      <span>{model.Video?.length ?? 0} videos</span>
                     </div>
                     <Button asChild variant="ghost" size="sm">
                       <Link href={`/models/${model.id}`}>

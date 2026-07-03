@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { createModel, createVideo } from "@/lib/supabase/models"
 import { ModelForm } from "@/components/models/model-form"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
@@ -6,29 +6,24 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { type ModelFormData } from "@/lib/validations/model"
 
-async function createModel(data: ModelFormData) {
-  'use server'
-  try {
-    await prisma.model.create({
-      data: {
-        name: data.name,
-        avatarUrl: data.avatarUrl,
-        videoEmbedUrl: data.videoEmbedUrl || null,
-        description: data.description,
-      }
-    })
-  } catch (error) {
-    console.error('Failed to create model:', error)
-    throw new Error('Failed to create model')
-  }
-}
-
 export default function NewModelPage() {
-  async function handleSubmit(data: ModelFormData) {
-    'use server'
-    await createModel(data)
-    redirect('/admin/models')
+async function handleSubmit(data: ModelFormData) {
+  "use server"
+
+  const model = await createModel({
+    name: data.name,
+    avatarUrl: data.avatarUrl,
+  })
+
+  if (data.videoEmbedUrl) {
+    await createVideo({
+      modelId: model.id,
+      url: data.videoEmbedUrl,
+    })
   }
+
+  redirect("/admin/models")
+}
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,6 +34,7 @@ export default function NewModelPage() {
             Back to Models
           </Link>
         </Button>
+
         <ModelForm onSubmit={handleSubmit} submitLabel="Create Model" />
       </div>
     </div>

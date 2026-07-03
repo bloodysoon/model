@@ -1,30 +1,17 @@
-import { prisma } from "@/lib/prisma"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Video, Calendar } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
-import { format } from "date-fns"
+import { getModelById } from "@/lib/supabase/models";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Video, Calendar } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { format } from "date-fns";
 
-async function getModel(id: string) {
-  try {
-    const model = await prisma.model.findUnique({
-      where: { id },
-      include: {
-        videos: {
-          orderBy: { order: 'asc' }
-        }
-      }
-    })
-    return model
-  } catch (error) {
-    console.error('Failed to fetch model:', error)
-    return null
-  }
-}
-
-export default async function ModelDetailPage({ params }: { params: { id: string } }) {
-  const model = await getModel(params.id)
+export default async function ModelDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const model = await getModelById(Number(params.id));
 
   if (!model) {
     return (
@@ -32,7 +19,9 @@ export default async function ModelDetailPage({ params }: { params: { id: string
         <Card className="w-full max-w-md">
           <CardContent className="py-12 text-center">
             <h3 className="text-lg font-semibold mb-2">Model not found</h3>
-            <p className="text-muted-foreground mb-4">The model you're looking for doesn't exist.</p>
+            <p className="text-muted-foreground mb-4">
+              The model you're looking for doesn't exist.
+            </p>
             <Button asChild>
               <Link href="/models">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -42,8 +31,10 @@ export default async function ModelDetailPage({ params }: { params: { id: string
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
+
+  const videos = model.Video ?? [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,72 +57,51 @@ export default async function ModelDetailPage({ params }: { params: { id: string
                 sizes="(max-width: 768px) 100vw, 256px"
               />
             </div>
+
             <div className="flex-1">
               <h1 className="text-4xl font-bold mb-2">{model.name}</h1>
+
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-1">
                   <Video className="h-4 w-4" />
-                  <span>{model.videos.length} videos</span>
+                  <span>{videos.length} videos</span>
                 </div>
+
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  <span>Added {format(new Date(model.createdAt), 'MMM d, yyyy')}</span>
+                  <span>
+                    Added {format(new Date(model.created_at), "MMM d, yyyy")}
+                  </span>
                 </div>
               </div>
-              <p className="text-muted-foreground mb-4">{model.description}</p>
-              {model.videoEmbedUrl && (
-                <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-                  <iframe
-                    src={model.videoEmbedUrl}
-                    className="w-full h-full"
-                    allowFullScreen
-                    title={`${model.name} video`}
-                  />
-                </div>
-              )}
             </div>
           </div>
         </div>
 
         <div>
           <h2 className="text-2xl font-bold mb-4">Video Gallery</h2>
-          {model.videos.length === 0 ? (
+
+          {videos.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">No videos yet</h3>
-                <p className="text-muted-foreground">This model doesn't have any videos uploaded yet.</p>
+                <p className="text-muted-foreground">
+                  This model doesn't have any videos uploaded yet.
+                </p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {model.videos.map((video: any) => (
+              {videos.map((video: any) => (
                 <Card key={video.id} className="overflow-hidden">
-                  <div className="aspect-video bg-muted relative">
-                    {video.thumbnailUrl ? (
-                      <Image
-                        src={video.thumbnailUrl}
-                        alt={video.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <Video className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{video.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-3">
                     <div className="aspect-video rounded-lg overflow-hidden bg-muted">
                       <iframe
-                        src={video.embedUrl}
+                        src={video.url}
                         className="w-full h-full"
                         allowFullScreen
-                        title={video.title}
+                        title={video.title ?? "Video"}
                       />
                     </div>
                   </CardContent>
@@ -142,5 +112,5 @@ export default async function ModelDetailPage({ params }: { params: { id: string
         </div>
       </div>
     </div>
-  )
+  );
 }

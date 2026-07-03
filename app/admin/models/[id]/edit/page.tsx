@@ -1,53 +1,37 @@
-import { prisma } from "@/lib/prisma"
+import { createVideo, getModelById, updateModel } from "@/lib/supabase/models"
 import { ModelForm } from "@/components/models/model-form"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { redirect } from "next/navigation"
+import { redirect, notFound } from "next/navigation"
 import { type ModelFormData } from "@/lib/validations/model"
-import { notFound } from "next/navigation"
 
-async function getModel(id: string) {
-  try {
-    const model = await prisma.model.findUnique({
-      where: { id }
-    })
-    return model
-  } catch (error) {
-    console.error('Failed to fetch model:', error)
-    return null
-  }
-}
+export default async function EditModelPage({
+  params,
+}: {
+  params: { id: string }
+}) {
+  const modelId = Number(params.id)
+  const model = await getModelById(modelId)
 
-async function updateModel(id: string, data: ModelFormData) {
-  'use server'
-  try {
-    await prisma.model.update({
-      where: { id },
-      data: {
-        name: data.name,
-        avatarUrl: data.avatarUrl,
-        videoEmbedUrl: data.videoEmbedUrl || null,
-        description: data.description,
-      }
-    })
-  } catch (error) {
-    console.error('Failed to update model:', error)
-    throw new Error('Failed to update model')
-  }
-}
-
-export default async function EditModelPage({ params }: { params: { id: string } }) {
-  const model = await getModel(params.id)
-
-  if (!model) {
-    notFound()
-  }
+  if (!model) notFound()
 
   async function handleSubmit(data: ModelFormData) {
-    'use server'
-    await updateModel(params.id, data)
-    redirect('/admin/models')
+    "use server"
+
+    await updateModel(modelId, {
+      name: data.name,
+      avatarUrl: data.avatarUrl,
+    })
+
+    if (data.videoEmbedUrl) {
+      await createVideo({
+        modelId,
+        url: data.videoEmbedUrl,
+      })
+    }
+
+    redirect("/admin/models")
   }
 
   return (
@@ -59,12 +43,33 @@ export default async function EditModelPage({ params }: { params: { id: string }
             Back to Models
           </Link>
         </Button>
-        <ModelForm 
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-3">Current videos</h2>
+
+          {model.Video?.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {model.Video.map((video: any) => (
+                <div key={video.id} className="overflow-hidden rounded-lg border bg-muted">
+                  <iframe
+                    src={video.url}
+                    className="aspect-video w-full"
+                    allowFullScreen
+                    title="Video"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No videos yet.</p>
+          )}
+        </div>
+
+        <ModelForm
           initialData={{
             name: model.name,
             avatarUrl: model.avatarUrl,
-            videoEmbedUrl: model.videoEmbedUrl || undefined,
-            description: model.description,
+            videoEmbedUrl: "",
           }}
           onSubmit={handleSubmit}
           submitLabel="Update Model"

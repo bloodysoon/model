@@ -1,45 +1,20 @@
-import { prisma } from "@/lib/prisma"
+import { getModels, deleteModel } from "@/lib/supabase/models"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Plus, Edit, Trash2, Video, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { format } from "date-fns"
-
-async function getModels() {
-  try {
-    const models = await prisma.model.findMany({
-      include: {
-        _count: {
-          select: { videos: true }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
-    return models
-  } catch (error) {
-    console.error('Failed to fetch models:', error)
-    return []
-  }
-}
-
-async function deleteModel(id: string) {
-  'use server'
-  try {
-    await prisma.model.delete({
-      where: { id }
-    })
-    return { success: true }
-  } catch (error) {
-    console.error('Failed to delete model:', error)
-    return { success: false, error: 'Failed to delete model' }
-  }
-}
+import { revalidatePath } from "next/cache"
 
 export default async function AdminModelsPage() {
   const models = await getModels()
+
+  async function handleDelete(id: number) {
+    "use server"
+    await deleteModel(id)
+    revalidatePath("/admin/models")
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,20 +62,22 @@ export default async function AdminModelsPage() {
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 </div>
+
                 <CardHeader>
                   <CardTitle className="text-xl">{model.name}</CardTitle>
                 </CardHeader>
+
                 <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {model.description}
-                  </p>
                   <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
                     <div className="flex items-center gap-1">
                       <Video className="h-4 w-4" />
-                      <span>{model._count.videos} videos</span>
+                      <span>{model.Video?.length ?? 0} videos</span>
                     </div>
-                    <span>Added {format(new Date(model.createdAt), 'MMM d, yyyy')}</span>
+                    <span>
+                      Added {format(new Date(model.created_at), "MMM d, yyyy")}
+                    </span>
                   </div>
+
                   <div className="flex gap-2">
                     <Button asChild variant="outline" className="flex-1">
                       <Link href={`/admin/models/${model.id}/edit`}>
@@ -108,10 +85,13 @@ export default async function AdminModelsPage() {
                         Edit
                       </Link>
                     </Button>
-                    <form action={async () => {
-                      'use server'
-                      await deleteModel(model.id)
-                    }}>
+
+                    <form
+                      action={async () => {
+                        "use server"
+                        await handleDelete(model.id)
+                      }}
+                    >
                       <Button type="submit" variant="destructive" size="icon">
                         <Trash2 className="h-4 w-4" />
                       </Button>
