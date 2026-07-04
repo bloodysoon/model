@@ -13,37 +13,46 @@ function isMissingColumnError(error: unknown, column: string) {
   return message.includes(column) && message.includes("schema cache");
 }
 
-export async function getModels() {
-  const { data: models, error } = await supabase
+export async function getModels(search?: string) {
+  let query = supabase
+
     .from("Models")
+
     .select("*")
+
     .order("created_at", { ascending: false });
+
+  if (search?.trim()) {
+    query = query.ilike("name", `%${search.trim()}%`);
+  }
+
+  const { data: models, error } = await query;
 
   if (error || !models) {
     console.error("Failed to fetch models:", error);
+
     return [];
   }
 
-  let videos = null;
-  let videosError = null;
+  const modelIds = models.map((m) => m.id);
 
-  const videosWithTagsQuery = await supabase
-    .from("Video")
-    .select("id, url, modelId, tags")
-    .order("id", { ascending: true });
+  if (modelIds.length === 0) {
+    return models.map((model) => ({
+      ...model,
 
-  videos = videosWithTagsQuery.data;
-  videosError = videosWithTagsQuery.error;
-
-  if (videosError && isMissingColumnError(videosError, "tags")) {
-    const fallbackVideosQuery = await supabase
-      .from("Video")
-      .select("id, url, modelId")
-      .order("id", { ascending: true });
-
-    videos = fallbackVideosQuery.data;
-    videosError = fallbackVideosQuery.error;
+      Video: [],
+    }));
   }
+
+  const { data: videos, error: videosError } = await supabase
+
+    .from("Video")
+
+    .select("id, url, modelId")
+
+    .in("modelId", modelIds)
+
+    .order("id", { ascending: true });
 
   if (videosError) {
     console.error("Failed to fetch videos:", videosError);
@@ -51,12 +60,14 @@ export async function getModels() {
 
   return models.map((model) => ({
     ...model,
+
     Video: videos?.filter((video) => video.modelId === model.id) ?? [],
   }));
 }
 
-export async function getRecentModels(limit = 6) {
-  const models = await getModels();
+export async function getRecentModels(limit = 20, search?: string) {
+  const models = await getModels(search);
+
   return models.slice(0, limit);
 }
 
@@ -283,4 +294,41 @@ export async function deleteVideo(id: number) {
     console.error("Failed to delete video:", error);
     throw error;
   }
+}
+
+export async function getVideos(params?: {
+  model?: string;
+
+  tag?: string;
+}) {
+  const { data: videos, error } = await supabase
+
+    .from("Video")
+
+    .select("id, url, modelId, tags, Models(id, name, avatarUrl)")
+
+    .order("id", { ascending: false });
+
+  if (error || !videos) {
+    console.error("Failed to fetch videos:", error);
+
+    return [];
+  }
+
+  return videos.filter((video: any) => {
+    const modelName = video.Models?.name?.toLowerCase() ?? "";
+
+    const modelFilter = params?.model?.toLowerCase().trim() ?? "";
+
+    const tagFilter = params?.tag?.toLowerCase().trim() ?? "";
+
+    const matchModel = modelFilter ? modelName.includes(modelFilter) : true;
+
+    const matchTag = tagFilter
+      ? Array.isArray(video.tags) &&
+        video.tags.some((tag: string) => tag.toLowerCase() === tagFilter)
+      : true;
+
+    return matchModel && matchTag;
+  });
 }
