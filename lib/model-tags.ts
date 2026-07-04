@@ -13,6 +13,8 @@ export const AVAILABLE_MODEL_TAGS = [
   "LickTits",
   "Lick",
   "Body",
+  "Under",
+  "Close",
 ] as const;
 
 export type ModelTag = (typeof AVAILABLE_MODEL_TAGS)[number];
