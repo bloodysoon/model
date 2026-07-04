@@ -16,6 +16,7 @@ export default function NewModelPage() {
     const model = await createModel({
       name: data.name,
       avatarUrl: data.avatarUrl,
+      description: data.description,
     });
 
     if (data.videoEmbedUrl) {

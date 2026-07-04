@@ -16,9 +16,16 @@ interface ModelFormProps {
   onSubmit: (data: ModelFormData) => Promise<void>
   isSubmitting?: boolean
   submitLabel?: string
+  showVideoField?: boolean
 }
 
-export function ModelForm({ initialData, onSubmit, isSubmitting = false, submitLabel = "Create Model" }: ModelFormProps) {
+export function ModelForm({
+  initialData,
+  onSubmit,
+  isSubmitting = false,
+  submitLabel = "Create Model",
+  showVideoField = true,
+}: ModelFormProps) {
   const [error, setError] = useState<string | null>(null)
 
   const form = useForm<ModelFormData>({
@@ -77,18 +84,20 @@ export function ModelForm({ initialData, onSubmit, isSubmitting = false, submitL
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="videoEmbedUrl">Video Embed URL (Optional)</Label>
-            <Input
-              id="videoEmbedUrl"
-              {...form.register("videoEmbedUrl")}
-              placeholder="https://youtube.com/embed/..."
-              disabled={isSubmitting}
-            />
-            {form.formState.errors.videoEmbedUrl && (
-              <p className="text-sm text-destructive">{form.formState.errors.videoEmbedUrl.message}</p>
-            )}
-          </div>
+          {showVideoField && (
+            <div className="space-y-2">
+              <Label htmlFor="videoEmbedUrl">Video Embed URL (Optional)</Label>
+              <Input
+                id="videoEmbedUrl"
+                {...form.register("videoEmbedUrl")}
+                placeholder="https://youtube.com/embed/..."
+                disabled={isSubmitting}
+              />
+              {form.formState.errors.videoEmbedUrl && (
+                <p className="text-sm text-destructive">{form.formState.errors.videoEmbedUrl.message}</p>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>

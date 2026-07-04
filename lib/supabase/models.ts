@@ -13,7 +13,7 @@ export async function getModels() {
 
   const { data: videos, error: videosError } = await supabase
     .from("Video")
-    .select("id, url, modelId")
+    .select("id, url, modelId, tags")
     .order("id", { ascending: true });
 
   if (videosError) {
@@ -45,7 +45,7 @@ export async function getModelById(id: number) {
 
   const { data: videos, error: videosError } = await supabase
     .from("Video")
-    .select("id, url, modelId")
+    .select("id, url, modelId, tags")
     .eq("modelId", id)
     .order("id", { ascending: true });
 
@@ -71,12 +71,17 @@ export async function getStats() {
   };
 }
 
-export async function createModel(data: { name: string; avatarUrl: string }) {
+export async function createModel(data: {
+  name: string;
+  avatarUrl: string;
+  description: string;
+}) {
   const { data: model, error } = await supabase
     .from("Models")
     .insert({
       name: data.name,
       avatarUrl: data.avatarUrl,
+      description: data.description,
     })
     .select()
     .single();
@@ -94,6 +99,7 @@ export async function updateModel(
   data: {
     name: string;
     avatarUrl: string;
+    description: string;
   },
 ) {
   const { error } = await supabase
@@ -101,6 +107,7 @@ export async function updateModel(
     .update({
       name: data.name,
       avatarUrl: data.avatarUrl,
+      description: data.description,
     })
     .eq("id", id);
 
@@ -121,14 +128,49 @@ export async function deleteModel(id: number) {
   return { success: true };
 }
 
-export async function createVideo(data: { modelId: number; url: string }) {
+export async function createVideo(data: {
+  modelId: number;
+  url: string;
+  tags?: string[];
+}) {
   const { error } = await supabase.from("Video").insert({
     modelId: data.modelId,
     url: data.url,
+    tags: data.tags ?? [],
   });
 
   if (error) {
     console.error("Failed to create video:", error);
+    throw error;
+  }
+}
+
+export async function updateVideo(
+  id: number,
+  data: {
+    url: string;
+    tags?: string[];
+  },
+) {
+  const { error } = await supabase
+    .from("Video")
+    .update({
+      url: data.url,
+      tags: data.tags ?? [],
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Failed to update video:", error);
+    throw error;
+  }
+}
+
+export async function deleteVideo(id: number) {
+  const { error } = await supabase.from("Video").delete().eq("id", id);
+
+  if (error) {
+    console.error("Failed to delete video:", error);
     throw error;
   }
 }
