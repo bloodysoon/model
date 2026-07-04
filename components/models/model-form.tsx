@@ -1,22 +1,24 @@
-"use client"
+"use client";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ImageUpload } from "@/components/ui/image-upload"
-import { modelSchema, type ModelFormData } from "@/lib/validations/model"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageUpload } from "@/components/ui/image-upload";
+import { modelSchema, type ModelFormData } from "@/lib/validations/model";
 
 interface ModelFormProps {
-  initialData?: Partial<ModelFormData>
-  onSubmit: (data: ModelFormData) => Promise<void>
-  isSubmitting?: boolean
-  submitLabel?: string
-  showVideoField?: boolean
+  initialData?: Partial<ModelFormData>;
+  onSubmit: (data: ModelFormData) => Promise<void>;
+  isSubmitting?: boolean;
+  submitLabel?: string;
+  showVideoField?: boolean;
 }
 
 export function ModelForm({
@@ -26,7 +28,7 @@ export function ModelForm({
   submitLabel = "Create Model",
   showVideoField = true,
 }: ModelFormProps) {
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<ModelFormData>({
     resolver: zodResolver(modelSchema),
@@ -36,16 +38,16 @@ export function ModelForm({
       videoEmbedUrl: initialData?.videoEmbedUrl || "",
       description: initialData?.description || "",
     },
-  })
+  });
 
   const handleSubmit = async (data: ModelFormData) => {
     try {
-      setError(null)
-      await onSubmit(data)
+      setError(null);
+      await onSubmit(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred")
+      setError(err instanceof Error ? err.message : "An error occurred");
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -69,7 +71,9 @@ export function ModelForm({
               disabled={isSubmitting}
             />
             {form.formState.errors.name && (
-              <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+              <p className="text-sm text-destructive">
+                {form.formState.errors.name.message}
+              </p>
             )}
           </div>
 
@@ -80,7 +84,9 @@ export function ModelForm({
               disabled={isSubmitting}
             />
             {form.formState.errors.avatarUrl && (
-              <p className="text-sm text-destructive">{form.formState.errors.avatarUrl.message}</p>
+              <p className="text-sm text-destructive">
+                {form.formState.errors.avatarUrl.message}
+              </p>
             )}
           </div>
 
@@ -94,7 +100,9 @@ export function ModelForm({
                 disabled={isSubmitting}
               />
               {form.formState.errors.videoEmbedUrl && (
-                <p className="text-sm text-destructive">{form.formState.errors.videoEmbedUrl.message}</p>
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.videoEmbedUrl.message}
+                </p>
               )}
             </div>
           )}
@@ -109,7 +117,9 @@ export function ModelForm({
               disabled={isSubmitting}
             />
             {form.formState.errors.description && (
-              <p className="text-sm text-destructive">{form.formState.errors.description.message}</p>
+              <p className="text-sm text-destructive">
+                {form.formState.errors.description.message}
+              </p>
             )}
           </div>
 
@@ -119,5 +129,5 @@ export function ModelForm({
         </form>
       </CardContent>
     </Card>
-  )
+  );
 }

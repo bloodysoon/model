@@ -1,5 +1,18 @@
 import { supabase } from "./client";
 
+function isMissingColumnError(error: unknown, column: string) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const message =
+    "message" in error && typeof error.message === "string"
+      ? error.message
+      : "";
+
+  return message.includes(column) && message.includes("schema cache");
+}
+
 export async function getModels() {
   const { data: models, error } = await supabase
     .from("Models")
@@ -11,10 +24,26 @@ export async function getModels() {
     return [];
   }
 
-  const { data: videos, error: videosError } = await supabase
+  let videos = null;
+  let videosError = null;
+
+  const videosWithTagsQuery = await supabase
     .from("Video")
     .select("id, url, modelId, tags")
     .order("id", { ascending: true });
+
+  videos = videosWithTagsQuery.data;
+  videosError = videosWithTagsQuery.error;
+
+  if (videosError && isMissingColumnError(videosError, "tags")) {
+    const fallbackVideosQuery = await supabase
+      .from("Video")
+      .select("id, url, modelId")
+      .order("id", { ascending: true });
+
+    videos = fallbackVideosQuery.data;
+    videosError = fallbackVideosQuery.error;
+  }
 
   if (videosError) {
     console.error("Failed to fetch videos:", videosError);
@@ -43,11 +72,28 @@ export async function getModelById(id: number) {
     return null;
   }
 
-  const { data: videos, error: videosError } = await supabase
+  let videos = null;
+  let videosError = null;
+
+  const videosWithTagsQuery = await supabase
     .from("Video")
     .select("id, url, modelId, tags")
     .eq("modelId", id)
     .order("id", { ascending: true });
+
+  videos = videosWithTagsQuery.data;
+  videosError = videosWithTagsQuery.error;
+
+  if (videosError && isMissingColumnError(videosError, "tags")) {
+    const fallbackVideosQuery = await supabase
+      .from("Video")
+      .select("id, url, modelId")
+      .eq("modelId", id)
+      .order("id", { ascending: true });
+
+    videos = fallbackVideosQuery.data;
+    videosError = fallbackVideosQuery.error;
+  }
 
   if (videosError) {
     console.error("videos error:", videosError);
@@ -76,7 +122,10 @@ export async function createModel(data: {
   avatarUrl: string;
   description: string;
 }) {
-  const { data: model, error } = await supabase
+  let model = null;
+  let error = null;
+
+  const createWithDescription = await supabase
     .from("Models")
     .insert({
       name: data.name,
@@ -85,6 +134,23 @@ export async function createModel(data: {
     })
     .select()
     .single();
+
+  model = createWithDescription.data;
+  error = createWithDescription.error;
+
+  if (error && isMissingColumnError(error, "description")) {
+    const createWithoutDescription = await supabase
+      .from("Models")
+      .insert({
+        name: data.name,
+        avatarUrl: data.avatarUrl,
+      })
+      .select()
+      .single();
+
+    model = createWithoutDescription.data;
+    error = createWithoutDescription.error;
+  }
 
   if (error) {
     console.error("Failed to create model:", error);
@@ -102,7 +168,9 @@ export async function updateModel(
     description: string;
   },
 ) {
-  const { error } = await supabase
+  let error = null;
+
+  const updateWithDescription = await supabase
     .from("Models")
     .update({
       name: data.name,
@@ -110,6 +178,20 @@ export async function updateModel(
       description: data.description,
     })
     .eq("id", id);
+
+  error = updateWithDescription.error;
+
+  if (error && isMissingColumnError(error, "description")) {
+    const updateWithoutDescription = await supabase
+      .from("Models")
+      .update({
+        name: data.name,
+        avatarUrl: data.avatarUrl,
+      })
+      .eq("id", id);
+
+    error = updateWithoutDescription.error;
+  }
 
   if (error) {
     console.error("Failed to update model:", error);
@@ -133,11 +215,24 @@ export async function createVideo(data: {
   url: string;
   tags?: string[];
 }) {
-  const { error } = await supabase.from("Video").insert({
+  let error = null;
+
+  const createWithTags = await supabase.from("Video").insert({
     modelId: data.modelId,
     url: data.url,
     tags: data.tags ?? [],
   });
+
+  error = createWithTags.error;
+
+  if (error && isMissingColumnError(error, "tags")) {
+    const createWithoutTags = await supabase.from("Video").insert({
+      modelId: data.modelId,
+      url: data.url,
+    });
+
+    error = createWithoutTags.error;
+  }
 
   if (error) {
     console.error("Failed to create video:", error);
@@ -152,13 +247,28 @@ export async function updateVideo(
     tags?: string[];
   },
 ) {
-  const { error } = await supabase
+  let error = null;
+
+  const updateWithTags = await supabase
     .from("Video")
     .update({
       url: data.url,
       tags: data.tags ?? [],
     })
     .eq("id", id);
+
+  error = updateWithTags.error;
+
+  if (error && isMissingColumnError(error, "tags")) {
+    const updateWithoutTags = await supabase
+      .from("Video")
+      .update({
+        url: data.url,
+      })
+      .eq("id", id);
+
+    error = updateWithoutTags.error;
+  }
 
   if (error) {
     console.error("Failed to update video:", error);
