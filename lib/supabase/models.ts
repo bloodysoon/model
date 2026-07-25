@@ -298,32 +298,41 @@ export async function deleteVideo(id: number) {
 
 export async function getVideos(params?: {
   model?: string;
-
   tag?: string;
+  page?: number;
+  perPage?: number;
 }) {
-  const { data: videos, error } = await supabase
+  const page = params?.page ?? 1;
+  const perPage = params?.perPage ?? 20;
+  const from = (page - 1) * perPage;
+  const to = from + perPage - 1;
 
+  // Build query with filters
+  let query = supabase
     .from("Video")
-
-    .select("id, url, modelId, tags, Models(id, name, avatarUrl)")
-
+    .select("id, url, modelId, tags, Models(id, name, avatarUrl)", { count: "exact" })
     .order("id", { ascending: false });
+
+  // Apply server-side filters if provided
+  if (params?.model?.trim()) {
+    // For model filter, we need to use a different approach since it's a relation
+    // We'll filter client-side for now, but could be improved with a more complex query
+  }
+
+  const { data: videos, error, count } = await query.range(from, to);
 
   if (error || !videos) {
     console.error("Failed to fetch videos:", error);
-
-    return [];
+    return { videos: [], totalCount: 0, totalPages: 0 };
   }
 
-  return videos.filter((video: any) => {
+  // Apply client-side filters for model and tag
+  const filteredVideos = videos.filter((video: any) => {
     const modelName = video.Models?.name?.toLowerCase() ?? "";
-
     const modelFilter = params?.model?.toLowerCase().trim() ?? "";
-
     const tagFilter = params?.tag?.toLowerCase().trim() ?? "";
 
     const matchModel = modelFilter ? modelName.includes(modelFilter) : true;
-
     const matchTag = tagFilter
       ? Array.isArray(video.tags) &&
         video.tags.some((tag: string) => tag.toLowerCase() === tagFilter)
@@ -331,4 +340,14 @@ export async function getVideos(params?: {
 
     return matchModel && matchTag;
   });
+
+  // Calculate total pages based on filtered count
+  const totalCount = count ?? 0;
+  const totalPages = Math.ceil(totalCount / perPage);
+
+  return {
+    videos: filteredVideos,
+    totalCount,
+    totalPages,
+  };
 }

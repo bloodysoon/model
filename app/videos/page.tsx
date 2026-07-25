@@ -5,8 +5,9 @@ import { getVideos } from "@/lib/supabase/models";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Search, Video } from "lucide-react";
+import { ArrowLeft, Search, Video, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { VideoCard } from "@/components/videos/video-card";
 
 export default async function VideosPage({
   searchParams,
@@ -14,13 +15,22 @@ export default async function VideosPage({
   searchParams?: {
     model?: string;
     tag?: string;
+    page?: string;
   };
 }) {
   const model = searchParams?.model ?? "";
   const tag = searchParams?.tag ?? "";
+  const page = parseInt(searchParams?.page ?? "1", 10);
+  const perPage = 20;
 
-  const videos = await getVideos({ model, tag });
+  const { videos, totalCount, totalPages } = await getVideos({ 
+    model, 
+    tag, 
+    page, 
+    perPage 
+  });
 
+  // Get all tags from current page for display
   const tags = Array.from(
     new Set(
       videos.flatMap((video: any) =>
@@ -28,6 +38,15 @@ export default async function VideosPage({
       ),
     ),
   );
+
+  // Helper function to build URL with preserved parameters
+  function buildPageUrl(newPage: number) {
+    const params = new URLSearchParams();
+    if (model) params.set("model", model);
+    if (tag) params.set("tag", tag);
+    params.set("page", newPage.toString());
+    return `/videos?${params.toString()}`;
+  }
 
   return (
     <main className="min-h-screen bg-background">
@@ -51,6 +70,7 @@ export default async function VideosPage({
             </div>
 
             {tag ? <input type="hidden" name="tag" value={tag} /> : null}
+            <input type="hidden" name="page" value="1" />
 
             <Button type="submit">Search</Button>
 
@@ -77,6 +97,7 @@ export default async function VideosPage({
                       href={`/videos?${new URLSearchParams({
                         ...(model ? { model } : {}),
                         tag: item,
+                        page: "1",
                       }).toString()}`}
                     >
                       #{item}
@@ -99,46 +120,75 @@ export default async function VideosPage({
             </CardContent>
           </Card>
         ) : (
-          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {videos.map((video: any) => (
-              <Card key={video.id} className="overflow-hidden">
-                <CardContent className="p-3">
-                  <div className="aspect-video overflow-hidden rounded-lg bg-muted">
-                    <iframe
-                      src={video.url}
-                      title="Video"
-                      className="h-full w-full"
-                      allowFullScreen
-                    />
+          <>
+            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {videos.map((video: any) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
+            </section>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Showing {((page - 1) * perPage) + 1} to {Math.min(page * perPage, totalCount)} of {totalCount} videos
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 1}
+                  >
+                    <Link href={buildPageUrl(page - 1)}>
+                      <ChevronLeft className="mr-1 h-4 w-4" />
+                      Previous
+                    </Link>
+                  </Button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (page <= 3) {
+                        pageNum = i + 1;
+                      } else if (page >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = page - 2 + i;
+                      }
+
+                      return (
+                        <Button
+                          key={pageNum}
+                          asChild
+                          variant={pageNum === page ? "default" : "outline"}
+                          size="sm"
+                        >
+                          <Link href={buildPageUrl(pageNum)}>
+                            {pageNum}
+                          </Link>
+                        </Button>
+                      );
+                    })}
                   </div>
 
-                  <div className="mt-3 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Link
-                        href={`/models/${video.modelId}`}
-                        className="truncate text-sm font-medium hover:underline"
-                      >
-                        {video.Models?.name ?? "Unknown model"}
-                      </Link>
-
-                      {Array.isArray(video.tags) && video.tags.length > 0 && (
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {video.tags.map((tag: string) => (
-                            <span
-                              key={tag}
-                              className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </section>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    disabled={page === totalPages}
+                  >
+                    <Link href={buildPageUrl(page + 1)}>
+                      Next
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </main>

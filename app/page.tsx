@@ -5,7 +5,7 @@ import { getRecentModels } from "@/lib/supabase/models";
 import { ModelSearch } from "@/components/models/model-search";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Video, LayoutDashboard, Plus, Film } from "lucide-react";
+import { Video, LayoutDashboard, Plus, Film, Radio } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -37,7 +37,14 @@ export default async function HomePage({
               </Link>
             </Button>
 
-            {/* <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/check-cb">
+                <Radio className="mr-2 h-4 w-4" />
+                Online
+              </Link>
+            </Button>
+
+            <Button asChild variant="outline" size="sm">
               <Link href="/admin/models">
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 Admin
@@ -49,7 +56,7 @@ export default async function HomePage({
                 <Plus className="mr-2 h-4 w-4" />
                 Add
               </Link>
-            </Button> */}
+            </Button>
           </div>
         </section>
 

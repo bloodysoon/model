@@ -21,10 +21,10 @@ export default async function AdminModelsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
+      <div className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <Button asChild variant="ghost" className="mb-4">
+            <Button asChild variant="ghost" className="mb-2">
               <Link href="/">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Home
@@ -42,21 +42,21 @@ export default async function AdminModelsPage() {
         </div>
 
         {models.length === 0 ? (
-          <Card className="w-full max-w-2xl mx-auto">
-            <CardContent className="py-12 text-center">
-              <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No models yet</h3>
-              <p className="text-muted-foreground mb-4">Get started by creating your first model</p>
+          <Card className="w-full">
+            <CardContent className="py-8 text-center">
+              <Video className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+              <h3 className="text-base font-semibold mb-2">No models yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">Get started by creating your first model</p>
               <Button asChild>
                 <Link href="/admin/models/new">Create Model</Link>
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
             {models.map((model: any) => (
               <Card key={model.id} className="overflow-hidden">
-                <div className="relative h-48 w-full bg-muted">
+                <div className="relative aspect-[3/4] w-full bg-muted">
                   <Image
                     src={model.avatarUrl}
                     alt={model.name}
@@ -66,14 +66,14 @@ export default async function AdminModelsPage() {
                   />
                 </div>
 
-                <CardHeader>
-                  <CardTitle className="text-xl">{model.name}</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{model.name}</CardTitle>
                 </CardHeader>
 
-                <CardContent>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                     <div className="flex items-center gap-1">
-                      <Video className="h-4 w-4" />
+                      <Video className="h-3.5 w-3.5" />
                       <span>{model.Video?.length ?? 0} videos</span>
                     </div>
                     <span>
@@ -82,7 +82,7 @@ export default async function AdminModelsPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button asChild variant="outline" className="flex-1">
+                    <Button asChild variant="outline" className="flex-1" size="sm">
                       <Link href={`/admin/models/${model.id}/edit`}>
                         <Edit className="mr-2 h-4 w-4" />
                         Edit

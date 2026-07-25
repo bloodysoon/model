@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { uploadImage } from '@/lib/cloudinary'
+import { uploadImage } from '@/lib/imgbb'
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,11 +29,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await uploadImage(file, 'avatars') as any
+    const result = await uploadImage(file)
 
     return NextResponse.json({
-      url: result.secure_url,
-      publicId: result.public_id,
+      url: result.url,
+      deleteUrl: result.deleteUrl,
+      id: result.id,
     })
   } catch (error) {
     console.error('Upload error:', error)
