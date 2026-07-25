@@ -43,20 +43,6 @@ export default async function HomePage({
                 Online
               </Link>
             </Button>
-
-            <Button asChild variant="outline" size="sm">
-              <Link href="/admin/models">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Admin
-              </Link>
-            </Button>
-
-            <Button asChild variant="secondary" size="sm">
-              <Link href="/admin/models/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Add
-              </Link>
-            </Button>
           </div>
         </section>
 
